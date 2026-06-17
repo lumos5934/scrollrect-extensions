@@ -6,11 +6,10 @@ using UnityEngine.UI;
 namespace LLib
 {
     [RequireComponent(typeof(ScrollRect))]
-    public class ScrollRectSnap : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
+    public class ScrollRectSnapper : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
     {
-        [Header("Animation")]
-        [SerializeField] private AnimationCurve snapCurve;
-        [SerializeField] private float snapDuration;
+        [SerializeField] private AnimationCurve _snapCurve = AnimationCurve.Linear(0, 0, 1, 1);
+        [SerializeField] private float _snapDuration;
         
         private int _cachedChildCount;
         private ScrollRect _scrollRect;
@@ -23,6 +22,12 @@ namespace LLib
         private void Awake()
         {
             _scrollRect = GetComponent<ScrollRect>();
+        }
+
+
+        private void OnEnable()
+        {
+            Snap();
         }
 
         private void LateUpdate()
@@ -134,19 +139,19 @@ namespace LLib
 
 
             if (useAnimation && 
-                snapCurve != null && 
-                snapDuration > 0)
+                _snapCurve != null && 
+                _snapDuration > 0)
             {
                 var startPos = Content.localPosition;
                 
-                float timer = snapDuration;
+                float timer = _snapDuration;
                 while (timer > 0)
                 {
                     timer -= Time.deltaTime;
 
-                    var t = 1 - (timer / snapDuration);
+                    var t = 1 - (timer / _snapDuration);
                     
-                    Content.localPosition = Vector2.LerpUnclamped(startPos, snapPos, snapCurve.Evaluate(t));
+                    Content.localPosition = Vector2.LerpUnclamped(startPos, snapPos, _snapCurve.Evaluate(t));
                     
                     yield return null;
                 }

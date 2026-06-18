@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace LLib
 {
     [RequireComponent(typeof(ScrollRect))]
-    public class ScrollRectSnapper : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
+    public class ScrollRectSnapper : MonoBehaviour, IEndDragHandler, IBeginDragHandler
     {
         [SerializeField] private AnimationCurve _snapCurve = AnimationCurve.Linear(0, 0, 1, 1);
         [SerializeField] private float _snapDuration;
@@ -14,6 +14,7 @@ namespace LLib
         private int _cachedChildCount;
         private ScrollRect _scrollRect;
         private Coroutine _snapCoroutine;
+        private RectTransform _rectTransform;
         
         private RectTransform ViewPort => _scrollRect.viewport;
         private RectTransform Content => _scrollRect.content;
@@ -22,6 +23,7 @@ namespace LLib
         private void Awake()
         {
             _scrollRect = GetComponent<ScrollRect>();
+            _rectTransform = GetComponent<RectTransform>();
         }
 
 
@@ -30,6 +32,7 @@ namespace LLib
             Snap();
         }
 
+        
         private void LateUpdate()
         {
             var childCount = Content.childCount;
@@ -37,12 +40,19 @@ namespace LLib
             {
                 _cachedChildCount = childCount;
             
+                
                 Snap();
             }
         }
         
         
-        public void OnPointerDown(PointerEventData eventData)
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            Snap();
+        }
+
+        
+        public void OnBeginDrag(PointerEventData eventData)
         {
             if (_snapCoroutine != null)
             {
@@ -50,12 +60,6 @@ namespace LLib
 
                 _snapCoroutine = null;
             }
-        }
-     
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            Snap();
         }
         
 
@@ -65,6 +69,8 @@ namespace LLib
                 Content.childCount == 0 ||
                 ViewPort == null)
                 return;
+            
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_rectTransform);
             
             Vector2 center = ViewPort.rect.center;
             float maxDist = ViewPort.rect.size.magnitude * 0.5f;
@@ -103,6 +109,8 @@ namespace LLib
         {
             if (target == null)
                 return;
+            
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_rectTransform);
             
             for (int i = 0; i < Content.childCount; i++)
             {

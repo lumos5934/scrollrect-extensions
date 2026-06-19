@@ -1,5 +1,5 @@
 # ScrollRect Effects
-스크롤뷰와 관련하여 pivot 이나 anchor, layout group 형태에 제한 받지 않고 스냅, 스케일 등의 기능을 제공합니다. 
+스크롤뷰와 관련하여 pivot 이나 anchor, layout group 형태에 제한 받지 않고 스냅, 스케일 등의 기능을 제공합니다. 필요한 효과를 ScrollRect 가 있는 오브젝트에 추가 하면 바로 사용 할 수 있습니다.
 
 [ Usage ](#usage) <br>
 [ API ](#api) <br>

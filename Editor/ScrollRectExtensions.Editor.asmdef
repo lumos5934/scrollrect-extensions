@@ -1,0 +1,16 @@
+{
+    "name": "ScrollRectExtensions.Editor",
+    "rootNamespace": "",
+    "references": ["GUID:beb05622d809f964f9d7db6fbc5f0cb8"],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,60 +1,54 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace LLib
 {
-    [RequireComponent(typeof(ScrollRect))]
-    public class ScrollRectSnapper : MonoBehaviour, IEndDragHandler, IBeginDragHandler
+    public class ScrollRectSnapEffect : ScrollRectEffect, IEndDragHandler, IBeginDragHandler
     {
         [SerializeField] private AnimationCurve _snapCurve = AnimationCurve.Linear(0, 0, 1, 1);
-        [SerializeField] private float _snapDuration;
+        [SerializeField] private float _snapDuration = 0.2f;
         
         private int _cachedChildCount;
-        private ScrollRect _scrollRect;
         private Coroutine _snapCoroutine;
-        private RectTransform _rectTransform;
         
         private RectTransform ViewPort => _scrollRect.viewport;
         private RectTransform Content => _scrollRect.content;
 
-
         public event Action<RectTransform> OnSnapped;
 
+        
 
-        private void Awake()
+        protected override void Awake()
         {
-            _scrollRect = GetComponent<ScrollRect>();
+            base.Awake();
+            
             _rectTransform = GetComponent<RectTransform>();
         }
 
+        public override void OnUpdate(IReadOnlyList<ScrollItem> items)
+        {
+        }
 
         private void OnEnable()
         {
-            Snap();
-        }
-
-        
-        private void LateUpdate()
-        {
-            var childCount = Content.childCount;
-            if (childCount != _cachedChildCount)
+            IEnumerator DelaySnapCoroutine()
             {
-                _cachedChildCount = childCount;
-            
-                
+                yield return new WaitForEndOfFrame();
                 Snap();
             }
+            
+            StartCoroutine(DelaySnapCoroutine());
         }
         
-        
-        public void OnEndDrag(PointerEventData eventData)
+        private void OnTransformChildrenChanged()
         {
             Snap();
         }
-
         
         public void OnBeginDrag(PointerEventData eventData)
         {
@@ -66,8 +60,11 @@ namespace LLib
             }
         }
         
-        
-        
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            Snap();
+        }
+
         
 
         public void Snap(bool useAnimation = true)
@@ -78,39 +75,25 @@ namespace LLib
                 return;
             
             LayoutRebuilder.ForceRebuildLayoutImmediate(_rectTransform);
-            
-            Vector2 center = ViewPort.rect.center;
-            float maxDist = ViewPort.rect.size.magnitude * 0.5f;
-            if (maxDist <= 0f)
-                return;
 
-            int centerIndex = -1;
+            _effectCore.UpdateItems();
             
-            float closetDist = float.MaxValue;
-
-            for (int i = 0; i < Content.childCount; i++)
+            ScrollItem centerItem = new();
+            centerItem.Distance = float.MaxValue;
+            
+            foreach (var item in _effectCore.Items)
             {
-                var child =  Content.GetChild(i);
-                if(!child.gameObject.activeSelf)
-                    continue;
-
-                Vector2 childPos = ViewPort.InverseTransformPoint(child.position);
-
-                float dist = (childPos - center).magnitude;
-                if (dist < closetDist)
+                if (item.IsActive && item.Distance < centerItem.Distance)
                 {
-                    closetDist = dist;
-                    centerIndex = i;
+                    centerItem = item;
                 }
             }
 
-            if (centerIndex > -1)
+            if (centerItem.RectTransform != null)
             {
-                var target = (RectTransform)Content.GetChild(centerIndex);
-                OnSnap(target, useAnimation);
+                StartSnapCoroutine(centerItem.RectTransform, useAnimation);
             }
         }
-
 
         public void Snap(RectTransform target, bool useAnimation = true)
         {
@@ -119,19 +102,16 @@ namespace LLib
             
             LayoutRebuilder.ForceRebuildLayoutImmediate(_rectTransform);
             
-            for (int i = 0; i < Content.childCount; i++)
-            {
-                var child = Content.GetChild(i);
-                if (child == target)
-                {
-                    OnSnap(target, useAnimation);
-                    return;
-                }
-            }
+            _effectCore.UpdateItems();
+
+            var item = _effectCore.Items.FirstOrDefault(item => item.RectTransform == target);
+            if (item.RectTransform == null)
+                return;
+            
+            StartSnapCoroutine(target, useAnimation);
         }
         
-        
-        private void OnSnap(RectTransform target, bool useAnimation = true)
+        private void StartSnapCoroutine(RectTransform target, bool useAnimation = true)
         {
             if (_snapCoroutine != null)
             {
@@ -141,12 +121,10 @@ namespace LLib
             _snapCoroutine = StartCoroutine(SnapCoroutine(target, useAnimation));
         }
 
-
         private IEnumerator SnapCoroutine(RectTransform target, bool useAnimation = true)
         {
             yield return new WaitForEndOfFrame();
             
-            _scrollRect.StopMovement();
             _scrollRect.velocity = Vector2.zero;
             
             Vector2 targetLocalPos = ViewPort.InverseTransformPoint(target.position);
@@ -173,6 +151,8 @@ namespace LLib
             }
             
             Content.localPosition = snapPos;
+            
+            _scrollRect.velocity = Vector2.zero;
             
             OnSnapped?.Invoke(target);
             

@@ -58,7 +58,7 @@
 <br>
 <br>
 
-* #### ScrollRectEffect
+#### ScrollRectEffect
 **`OnRefreshed(items)`** : 아이템들을 새로 생성했을때 실행됩니다. <br>
 **`OnUpdated(items)`** : 아이템들을 매프레임 업데이트 할때마다 실행됩니다. <br>
 
@@ -66,7 +66,7 @@
 <br>
 <br>
 
-* #### ScrollRectSnapEffect
+#### ScrollRectSnapEffect
 **`SnapCurve`** : 스냅시 이동에 대한 애니메이션 커브입니다. <br>
 **`Items`** : 관리중인 아이템 입니다.<br>
 **`Snap(useAnimation)`** : 뷰포트의 중앙으로 스냅시킵니다. usAnimation을 통해 애니메이션 사용 여부를 결정 할 수 있습니다. <br>
@@ -75,7 +75,7 @@
 <br>
 <br>
 
-* #### ScrollRectLayoutEffect
+#### ScrollRectLayoutEffect
 **`Curve`** : 각 효과들이 사용하는 애니메이션 커브입니다. <br>
 **`EffectDistanceX`** : 효과가 적용될 최대 X 거리입니다.<br>
 **`EffectDistanceY`** : 효과가 적용될 최대 Y 거리입니다. <br>

@@ -1,4 +1,4 @@
-# ScrollRect Extensions
+# ScrollRect Effects
 스크롤뷰와 관련된 스냅, 스케일 등의 기능을 제공합니다.
 
 
